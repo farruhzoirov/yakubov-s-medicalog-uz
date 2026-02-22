@@ -33,7 +33,7 @@ import {
 } from "./schemas/registrations.schema";
 import { buildReportPipeline } from "../helpers/build-report-pipeline.helper";
 import { sendMessage } from "src/helpers/send-message";
-import { getAllUsers, getUsersByUserIds } from "src/utils/getUser";
+import { UsersService } from "src/users/users.service";
 import { UserProfile } from "src/type/interfaces/user.interface";
 import { REGIONS_LIST } from "./data/regions-list.constant";
 import { DistrictObj, RegionObj } from "src/type/interfaces/places.interface";
@@ -45,6 +45,7 @@ export class RegistrationsService {
     @InjectModel(Registrations.name)
     private readonly registrationsModel: Model<RegistrationsDocument>,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
     // private readonly backupService: BackupService
   ) {}
 
@@ -286,7 +287,7 @@ export class RegistrationsService {
 
   async getUsers() {
     try {
-      const users = await getAllUsers();
+      const users = await this.usersService.getAllUsers();
       return users;
     } catch (err) {
       console.error(err);
@@ -351,7 +352,7 @@ export class RegistrationsService {
       }
 
       if (createRegistrationDto.operationParticipants.length) {
-        const participants = await getUsersByUserIds(createRegistrationDto.operationParticipants);
+        const participants = await this.usersService.getUsersByUserIds(createRegistrationDto.operationParticipants);
         createRegistrationDto.participants = participants;
       }
 
@@ -415,7 +416,7 @@ export class RegistrationsService {
 
       const countDocuments = await this.registrationsModel.countDocuments();
       if (updateRegistrationDto.operationParticipants.length) {
-        const participants = await getUsersByUserIds(updateRegistrationDto.operationParticipants);
+        const participants = await this.usersService.getUsersByUserIds(updateRegistrationDto.operationParticipants);
         updateRegistrationDto.participants = participants;
       }
 

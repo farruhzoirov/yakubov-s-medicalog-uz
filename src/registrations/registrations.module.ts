@@ -6,9 +6,11 @@ import {
   Registrations,
   RegistrationsSchema,
 } from './schemas/registrations.schema';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     MongooseModule.forFeature([
       {
         name: Registrations.name,

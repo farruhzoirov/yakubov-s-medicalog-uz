@@ -13,6 +13,7 @@ import sheetConfig from './config/sheet.config';
 import databaseConfig from './config/database.config';
 import { RegistrationsModule } from './registrations/registrations.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { JwtService } from '@nestjs/jwt';
 
@@ -43,6 +44,7 @@ import { JwtService } from '@nestjs/jwt';
     // BackupModule,
     RegistrationsModule,
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthMiddleware, JwtService],

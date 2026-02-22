@@ -57,8 +57,6 @@ export class AuthMiddleware implements NestMiddleware {
       const user = this.jwtService.verify<UserProfile>(token, { secret });
 
       const expiryDate = parseExpiryDate(user.expiry_date);
-      console.log(expiryDate);
-      console.log(new Date());
       if (expiryDate && new Date() > expiryDate) {
         throw new UnauthorizedException('User access has expired');
       }

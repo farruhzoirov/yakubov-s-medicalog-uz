@@ -1,18 +1,19 @@
-import {  Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { AuthDto } from './dto/auth.dto';
-import { getUserByUsername } from 'src/utils/getUser';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
+        private readonly usersService: UsersService,
     ) {}
 
     async login(authDto: AuthDto): Promise<string> {
         try {
             const { username, password } = authDto;
-            const user = await getUserByUsername(username);
+            const user = await this.usersService.getUserByUsername(username);
             if (!user) {
                 throw new UnauthorizedException('Foydalanuvchi topilmadi');
             }
