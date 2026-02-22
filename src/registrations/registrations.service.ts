@@ -5,11 +5,8 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-
 import { ConfigService } from "@nestjs/config";
-import { BackupService } from "src/backup/backup.service";
 import { createDateRangeFilter } from "src/helpers/dateRangeFilter.helper";
-import { formatDate } from "src/helpers/formatDate.helper";
 import { formatRegistrations } from "src/helpers/formatRegistrations.helper";
 import {
   generateReportPdf,
@@ -24,7 +21,6 @@ import {
 import { getAgeHelper } from "src/helpers/getAge.helper";
 import { universalSearchQuery } from "src/helpers/search.helper";
 import {
-  AuthDto,
   CreateRegistrationDto,
   GetFilteredRegistrationsDto,
   UpdateRegistrationDto,
@@ -39,6 +35,9 @@ import { buildReportPipeline } from "../helpers/build-report-pipeline.helper";
 import { sendMessage } from "src/helpers/send-message";
 import { getUsersByUserIds } from "src/utils/getUser";
 import { UserProfile } from "src/type/interfaces/user.interface";
+import { REGIONS_LIST } from "./data/regions-list.constant";
+import { DistrictObj, RegionObj } from "src/type/interfaces/places.interface";
+import { DISTRICTS_LIST } from "./data/districts-list.constant";
 
 @Injectable()
 export class RegistrationsService {
@@ -308,6 +307,8 @@ export class RegistrationsService {
       radiologyFilmNumber?: number;
       participants?: UserProfile[];
       createdBy?: UserProfile;
+      regionObj?: RegionObj;
+      districtObj?: DistrictObj;
     },
     user: UserProfile,
   ): Promise<{ totalCount: number; totalPagesCount: number }> {
@@ -341,6 +342,21 @@ export class RegistrationsService {
       if (createRegistrationDto.operationParticipants.length) {
         const participants = await getUsersByUserIds(createRegistrationDto.operationParticipants);
         createRegistrationDto.participants = participants;
+      }
+
+
+      if (createRegistrationDto.region) {
+        const region = REGIONS_LIST.find(region => region.id === createRegistrationDto.region);
+        if (region && region.id !== 'other') {
+          createRegistrationDto.regionObj = region;
+        }
+      }
+
+      if (createRegistrationDto.district) {
+        const district = DISTRICTS_LIST.find(district => district.id === createRegistrationDto.district);
+        if (district && district.id !== 'other') {
+          createRegistrationDto.districtObj = district;
+        }
       }
 
       await this.registrationsModel.create(createRegistrationDto);
@@ -382,7 +398,6 @@ export class RegistrationsService {
         const participants = await getUsersByUserIds(updateRegistrationDto.operationParticipants);
         updateRegistrationDto.participants = participants;
       }
-      // this.backupService.handleCron()
 
       return {
         totalPagesCount: Math.ceil(countDocuments / 20),
