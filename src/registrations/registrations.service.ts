@@ -419,14 +419,16 @@ export class RegistrationsService {
         updateRegistrationDto.participants = participants;
       }
 
-      await this.registrationsModel.findByIdAndUpdate(
+      const updatedRegistration = await this.registrationsModel.findByIdAndUpdate(
         updateRegistrationDto.id,
         updateRegistrationDto,
+        { returnDocument: 'after' },
       );
 
       return {
         totalPagesCount: Math.ceil(countDocuments / 20),
         totalCount: countDocuments,
+        updatedRegistration,
       };
     } catch (err) {
       console.error(err);

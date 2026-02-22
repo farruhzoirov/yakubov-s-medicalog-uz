@@ -125,13 +125,14 @@ export class RegistrationsController {
   async updateRegistration(
     @Body() updateRegistrationDto: UpdateRegistrationDto,
   ) {
-    const { totalCount, totalPagesCount } =
+    const { totalCount, totalPagesCount, updatedRegistration } =
       await this.registrationsService.updateRegistration(updateRegistrationDto);
     return {
       message: "Registration updated successfully",
       success: true,
       totalCount,
       totalPagesCount,
+      data: updatedRegistration,
     };
   }
 
