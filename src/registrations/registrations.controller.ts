@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -92,6 +93,20 @@ export class RegistrationsController {
       pendingReportsCount,
     };
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get("users")
+  async getUsers() {
+    const users = await this.registrationsService.getUsers();
+    return {
+      message: "Users fetched successfully",
+      success: true,
+      data: users,
+    };
+  }
+
+
+
 
   @Post("create")
   async createRegistration(

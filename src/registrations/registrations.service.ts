@@ -33,7 +33,7 @@ import {
 } from "./schemas/registrations.schema";
 import { buildReportPipeline } from "../helpers/build-report-pipeline.helper";
 import { sendMessage } from "src/helpers/send-message";
-import { getUsersByUserIds } from "src/utils/getUser";
+import { getAllUsers, getUsersByUserIds } from "src/utils/getUser";
 import { UserProfile } from "src/type/interfaces/user.interface";
 import { REGIONS_LIST } from "./data/regions-list.constant";
 import { DistrictObj, RegionObj } from "src/type/interfaces/places.interface";
@@ -281,6 +281,17 @@ export class RegistrationsService {
       limit,
       pendingReportsCount,
     };
+  }
+
+
+  async getUsers() {
+    try {
+      const users = await getAllUsers();
+      return users;
+    } catch (err) {
+      console.error(err);
+      throw new BadRequestException("Error in getUsers", err.message);
+    }
   }
 
   //
