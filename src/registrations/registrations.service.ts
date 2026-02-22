@@ -37,6 +37,8 @@ import {
 } from "./schemas/registrations.schema";
 import { buildReportPipeline } from "../helpers/build-report-pipeline.helper";
 import { sendMessage } from "src/helpers/send-message";
+import { getUsersByUserIds } from "src/utils/getUser";
+import { UserProfile } from "src/type/interfaces/user.interface";
 
 @Injectable()
 export class RegistrationsService {
@@ -282,30 +284,35 @@ export class RegistrationsService {
     };
   }
 
+  //
+  // fullName: string;
+  // birthYear: string;
+  // gender: 'male' | 'female';
+  // medicalHistoryNumber: string;
+  // region: string;
+  // district: string;
+  // address: string;
+  // operationStartDateTime: string;
+  // operationEndDateTime: string;
+  // preOperationDiagnosis: string;
+  // operationName: string;
+  // postOperationDiagnosis: string;
+  // operationParticipants: string[];
+  // phone: string;
+  
+
   async createRegistration(
     createRegistrationDto: CreateRegistrationDto & {
       age?: number;
       yearlyCount?: number;
       radiologyFilmNumber?: number;
-      dailyCount?: number;
+      participants?: UserProfile[];
     },
   ): Promise<{ totalCount: number; totalPagesCount: number }> {
     try {
-      const now = new Date();
-      const todayUTC = new Date(
-        Date.UTC(
-          now.getUTCFullYear(),
-          now.getUTCMonth(),
-          now.getUTCDate(),
-          0,
-          0,
-          0,
-          0,
-        ),
-      );
-      if (createRegistrationDto.birthDate) {
+      if (createRegistrationDto.birthYear) {
         createRegistrationDto.age = await getAgeHelper(
-          createRegistrationDto.birthDate,
+          createRegistrationDto.birthYear,
         );
       }
 
@@ -325,21 +332,11 @@ export class RegistrationsService {
         } else {
           createRegistrationDto.yearlyCount = 1;
         }
+      }
 
-        createRegistrationDto.radiologyFilmNumber =
-          (lastRegistration.radiologyFilmNumber % 1000) + 1;
-
-        const [formatCreatedAt, formatToday] = await Promise.all([
-          formatDate(Object(lastRegistration).createdAt),
-          formatDate(todayUTC),
-        ]);
-
-        if (formatCreatedAt === formatToday) {
-          createRegistrationDto.dailyCount =
-            Object(lastRegistration)?.dailyCount + 1;
-        } else {
-          createRegistrationDto.dailyCount = 1;
-        }
+      if (createRegistrationDto.operationParticipants.length) {
+        const participants = await getUsersByUserIds(createRegistrationDto.operationParticipants);
+        createRegistrationDto.participants = participants;
       }
 
       await this.registrationsModel.create(createRegistrationDto);
@@ -357,7 +354,7 @@ export class RegistrationsService {
   }
 
   async updateRegistration(
-    updateRegistrationDto: UpdateRegistrationDto & { age?: number },
+    updateRegistrationDto: UpdateRegistrationDto & { age?: number, participants?: UserProfile[] },
   ) {
     try {
       const findRegistrationData = await this.registrationsModel.findById(
@@ -368,10 +365,9 @@ export class RegistrationsService {
         throw new NotFoundException("Registration data not found");
       }
 
-      if (updateRegistrationDto.birthDate) {
-        updateRegistrationDto.age = await getAgeHelper(
-          updateRegistrationDto.birthDate,
-        );
+      if (updateRegistrationDto.birthYear) {
+        updateRegistrationDto.age =
+          new Date().getFullYear() - parseInt(updateRegistrationDto.birthYear, 10);
       }
 
       await this.registrationsModel.findByIdAndUpdate(
@@ -380,6 +376,10 @@ export class RegistrationsService {
       );
 
       const countDocuments = await this.registrationsModel.countDocuments();
+      if (updateRegistrationDto.operationParticipants.length) {
+        const participants = await getUsersByUserIds(updateRegistrationDto.operationParticipants);
+        updateRegistrationDto.participants = participants;
+      }
       // this.backupService.handleCron()
 
       return {

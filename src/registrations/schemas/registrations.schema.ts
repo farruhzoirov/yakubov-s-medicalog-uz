@@ -1,4 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { UserProfile } from 'src/type/interfaces/user.interface';
+
 export enum Gender {
   MALE = 'male',
   FEMALE = 'female',
@@ -11,23 +13,11 @@ export class Registrations {
   @Prop({ type: Number, required: true, default: 1 })
   yearlyCount: number;
 
-  @Prop({ type: Number, required: true, default: 1 })
-  radiologyFilmNumber: number;
-
-  @Prop({ type: Number, required: true, default: 1 })
-  dailyCount: number;
-
   @Prop({ required: true })
   fullName: string;
 
-  @Prop({ default: null })
-  address: string;
-
-  @Prop({ default: null })
-  otherAddress: string;
-
   @Prop({ required: true })
-  birthDate: string;
+  birthYear: string;
 
   @Prop({ required: true })
   age: number;
@@ -36,48 +26,48 @@ export class Registrations {
   gender: Gender;
 
   @Prop({ default: null })
-  job: string;
+  medicalHistoryNumber: string;
 
   @Prop({ default: null })
-  otherJob: string;
+  region: string;
 
   @Prop({ default: null })
-  visitReason: string;
+  district: string;
 
   @Prop({ default: null })
-  otherVisitReason: string;
-
-  @Prop({ required: true })
-  radiationDose: string;
+  address: string;
 
   @Prop({ default: null })
-  radiologyReport: string;
+  operationStartDateTime: string;
 
   @Prop({ default: null })
-  otherRadiologyReport: string;
+  operationEndDateTime: string;
+
+  @Prop({ default: null })
+  preOperationDiagnosis: string;
+
+  @Prop({ default: null })
+  operationName: string;
+
+  @Prop({ default: null })
+  postOperationDiagnosis: string;
+
+  @Prop({ type: [String], default: [] })
+  operationParticipants: string[];
 
   @Prop({ default: null })
   phone: string;
+
+  @Prop({ type: [Object], default: [] })
+  participants: UserProfile[];
 }
 
 export const RegistrationsSchema = SchemaFactory.createForClass(Registrations);
-// Compound index
-RegistrationsSchema.index({
-  fullName: 1,
-  phone: 1,
-  adress: 1,
-  otherAddress: 1,
-  job: 1,
-  otherJob: 1,
-  visitReason: 1,
-  otherVisitReason: 1,
-  radiologyReport: 1,
-  otherRadioLogyReport: 1,
-});
-RegistrationsSchema.index({ visitReason: 1, otherVisitReason: 1 });
-RegistrationsSchema.index({ job: 1, otherJob: 1 });
 
-// Single index
-RegistrationsSchema.index({ birthDate: 1 });
+RegistrationsSchema.index({ fullName: 1, phone: 1, address: 1 });
+RegistrationsSchema.index({ medicalHistoryNumber: 1 });
+RegistrationsSchema.index({ region: 1, district: 1 });
+RegistrationsSchema.index({ operationStartDateTime: 1 });
+RegistrationsSchema.index({ birthYear: 1 });
 RegistrationsSchema.index({ createdAt: 1 });
 RegistrationsSchema.index({ gender: 1 });

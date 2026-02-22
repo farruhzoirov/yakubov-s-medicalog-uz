@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsMongoId,
@@ -124,22 +125,16 @@ export class ReportDto {
   to?: string;
 }
 
+// Create DTO: fullName, birthYear, gender, medicalHistoryNumber, region, district, address, operation*, phone
 export class CreateRegistrationDto {
   @IsString()
   @IsNotEmpty()
   fullName: string;
 
   @IsString()
-  @IsOptional()
-  address?: string;
-
-  @IsString()
-  @IsOptional()
-  otherAddress?: string;
-
-  @IsString()
-  @Length(4, 4)
-  birthDate: string;
+  @IsNotEmpty()
+  @Length(4, 4, { message: 'birthYear must be 4 digits (e.g. 1990)' })
+  birthYear: string;
 
   @IsEnum(Gender)
   @IsNotEmpty()
@@ -147,40 +142,54 @@ export class CreateRegistrationDto {
 
   @IsString()
   @IsOptional()
-  job?: string;
+  medicalHistoryNumber?: string;
 
   @IsString()
   @IsOptional()
-  otherJob?: string;
+  region?: string;
 
   @IsString()
   @IsOptional()
-  visitReason?: string;
+  district?: string;
 
   @IsString()
   @IsOptional()
-  otherVisitReason?: string;
+  address?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  radiationDose: string;
+  @IsDateString()
+  @IsOptional()
+  operationStartDateTime?: string;
+
+  @IsDateString()
+  @IsOptional()
+  operationEndDateTime?: string;
 
   @IsString()
   @IsOptional()
-  radiologyReport?: string;
+  preOperationDiagnosis?: string;
 
   @IsString()
   @IsOptional()
-  otherRadiologyReport?: string;
+  operationName?: string;
+
+  @IsString()
+  @IsOptional()
+  postOperationDiagnosis?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  operationParticipants?: string[];
 
   @IsString()
   @IsOptional()
   phone?: string;
 }
 
+// Update DTO: same fields, all optional except id
 export class UpdateRegistrationDto {
   @IsMongoId()
   @IsString()
+  @IsNotEmpty()
   id: string;
 
   @IsString()
@@ -188,17 +197,9 @@ export class UpdateRegistrationDto {
   fullName?: string;
 
   @IsString()
+  @Length(4, 4, { message: 'birthYear must be 4 digits (e.g. 1990)' })
   @IsOptional()
-  address?: string;
-
-  @IsString()
-  @IsOptional()
-  otherAddress?: string;
-
-  @IsString()
-  @Length(4, 4)
-  @IsOptional()
-  birthDate?: string;
+  birthYear?: string;
 
   @IsEnum(Gender)
   @IsOptional()
@@ -206,31 +207,44 @@ export class UpdateRegistrationDto {
 
   @IsString()
   @IsOptional()
-  job?: string;
+  medicalHistoryNumber?: string;
 
   @IsString()
   @IsOptional()
-  otherJob?: string;
+  region?: string;
 
   @IsString()
   @IsOptional()
-  visitReason?: string;
+  district?: string;
 
   @IsString()
   @IsOptional()
-  otherVisitReason?: string;
+  address?: string;
+
+  @IsDateString()
+  @IsOptional()
+  operationStartDateTime?: string;
+
+  @IsDateString()
+  @IsOptional()
+  operationEndDateTime?: string;
 
   @IsString()
   @IsOptional()
-  radiationDose?: string;
+  preOperationDiagnosis?: string;
 
   @IsString()
   @IsOptional()
-  radiologyReport?: string;
+  operationName?: string;
 
   @IsString()
   @IsOptional()
-  otherRadiologyReport?: string;
+  postOperationDiagnosis?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  operationParticipants?: string[];
 
   @IsString()
   @IsOptional()
