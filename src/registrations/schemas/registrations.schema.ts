@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { UserProfile } from 'src/type/interfaces/user.interface';
+import type { UserProfile } from 'src/type/interfaces/user.interface';
 
 export enum Gender {
   MALE = 'male',
@@ -60,6 +60,9 @@ export class Registrations {
 
   @Prop({ type: [Object], default: [] })
   participants: UserProfile[];
+
+  @Prop({ type: Object, default: null })
+  createdBy: UserProfile;
 }
 
 export const RegistrationsSchema = SchemaFactory.createForClass(Registrations);

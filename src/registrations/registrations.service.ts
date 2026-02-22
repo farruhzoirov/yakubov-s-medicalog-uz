@@ -307,7 +307,9 @@ export class RegistrationsService {
       yearlyCount?: number;
       radiologyFilmNumber?: number;
       participants?: UserProfile[];
+      createdBy?: UserProfile;
     },
+    user: UserProfile,
   ): Promise<{ totalCount: number; totalPagesCount: number }> {
     try {
       if (createRegistrationDto.birthYear) {
@@ -315,6 +317,8 @@ export class RegistrationsService {
           createRegistrationDto.birthYear,
         );
       }
+
+      createRegistrationDto.createdBy = user
 
       const [countDocuments, lastRegistration] = await Promise.all([
         this.registrationsModel.countDocuments(),
@@ -353,9 +357,7 @@ export class RegistrationsService {
     }
   }
 
-  async updateRegistration(
-    updateRegistrationDto: UpdateRegistrationDto & { age?: number, participants?: UserProfile[] },
-  ) {
+  async updateRegistration(updateRegistrationDto: UpdateRegistrationDto & { age?: number, participants?: UserProfile[]}) {
     try {
       const findRegistrationData = await this.registrationsModel.findById(
         updateRegistrationDto.id,

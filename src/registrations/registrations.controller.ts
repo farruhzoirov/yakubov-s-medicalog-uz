@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   UnauthorizedException,
   UsePipes,
   ValidationPipe,
@@ -17,6 +18,7 @@ import {
   ContactDto,
 } from "./dto/registrations.dto";
 import { RegistrationsService } from "./registrations.service";
+import { UserProfile } from "src/type/interfaces/user.interface";
 
 @Controller("registrations")
 @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -94,9 +96,11 @@ export class RegistrationsController {
   @Post("create")
   async createRegistration(
     @Body() createRegistrationDto: CreateRegistrationDto,
+    @Req() req: any,
   ) {
+    const user = req.user as UserProfile;
     const { totalCount, totalPagesCount } =
-      await this.registrationsService.createRegistration(createRegistrationDto);
+      await this.registrationsService.createRegistration(createRegistrationDto, user);
     return {
       message: "Registration created successfully",
       success: true,
