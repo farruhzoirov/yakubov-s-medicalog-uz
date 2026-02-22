@@ -6,12 +6,10 @@ import {
   HttpStatus,
   Post,
   Req,
-  UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
 import {
-  AuthDto,
   CreateRegistrationDto,
   GetFilteredRegistrationsDto,
   UpdateRegistrationDto,
@@ -104,8 +102,6 @@ export class RegistrationsController {
       data: users,
     };
   }
-
-
 
 
   @Post("create")

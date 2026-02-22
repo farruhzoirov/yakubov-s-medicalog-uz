@@ -384,7 +384,7 @@ export class RegistrationsService {
     }
   }
 
-  async updateRegistration(updateRegistrationDto: UpdateRegistrationDto & { age?: number, participants?: UserProfile[]}) {
+  async updateRegistration(updateRegistrationDto: UpdateRegistrationDto & { age?: number, participants?: UserProfile[], regionObj?: RegionObj, districtObj?: DistrictObj }) {
     try {
       const findRegistrationData = await this.registrationsModel.findById(
         updateRegistrationDto.id,
@@ -399,16 +399,30 @@ export class RegistrationsService {
           new Date().getFullYear() - parseInt(updateRegistrationDto.birthYear, 10);
       }
 
-      await this.registrationsModel.findByIdAndUpdate(
-        updateRegistrationDto.id,
-        updateRegistrationDto,
-      );
+      if (updateRegistrationDto.region) {
+        const region = REGIONS_LIST.find(region => region.id === updateRegistrationDto.region);
+        if (region && region.id !== 'other') {
+          updateRegistrationDto.regionObj = region;
+        }
+      }
+
+      if (updateRegistrationDto.district) {
+        const district = DISTRICTS_LIST.find(district => district.id === updateRegistrationDto.district);
+        if (district && district.id !== 'other') {
+          updateRegistrationDto.districtObj = district;
+        }
+      }
 
       const countDocuments = await this.registrationsModel.countDocuments();
       if (updateRegistrationDto.operationParticipants.length) {
         const participants = await getUsersByUserIds(updateRegistrationDto.operationParticipants);
         updateRegistrationDto.participants = participants;
       }
+
+      await this.registrationsModel.findByIdAndUpdate(
+        updateRegistrationDto.id,
+        updateRegistrationDto,
+      );
 
       return {
         totalPagesCount: Math.ceil(countDocuments / 20),
