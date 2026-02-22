@@ -26,11 +26,17 @@ import {
   UpdateRegistrationDto,
   ReportDto,
   ContactDto,
+  CreateRegistrationOptionDto,
 } from "./dto/registrations.dto";
 import {
   Registrations,
   RegistrationsDocument,
 } from "./schemas/registrations.schema";
+import { RegistrationOptionTypeEnum } from "src/type/enums/options.enum";
+import {
+  RegistrationOption,
+  RegistrationOptionDocument,
+} from "./schemas/registration-option.schema";
 import { buildReportPipeline } from "../helpers/build-report-pipeline.helper";
 import { sendMessage } from "src/helpers/send-message";
 import { UsersService } from "src/users/users.service";
@@ -38,12 +44,15 @@ import { UserProfile } from "src/type/interfaces/user.interface";
 import { REGIONS_LIST } from "./data/regions-list.constant";
 import { DistrictObj, RegionObj } from "src/type/interfaces/places.interface";
 import { DISTRICTS_LIST } from "./data/districts-list.constant";
+import { syncRegistrationOptions } from "./utils/syncRegistrationOptions";
 
 @Injectable()
 export class RegistrationsService {
   constructor(
     @InjectModel(Registrations.name)
     private readonly registrationsModel: Model<RegistrationsDocument>,
+    @InjectModel(RegistrationOption.name)
+    private readonly registrationOptionModel: Model<RegistrationOptionDocument>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
     // private readonly backupService: BackupService
@@ -295,6 +304,16 @@ export class RegistrationsService {
     }
   }
 
+  async getOptionsByType(type: RegistrationOptionTypeEnum) {
+    try {
+      const options = await this.registrationOptionModel.find({ type }).exec();
+      return options;
+    } catch (err) {
+      console.error(err);
+      throw new BadRequestException("Error in getOptionsByType", err.message);
+    }
+  }
+
   //
   // fullName: string;
   // birthYear: string;
@@ -371,6 +390,12 @@ export class RegistrationsService {
         }
       }
 
+      syncRegistrationOptions(this.registrationOptionModel, {
+        preOperationDiagnosis: createRegistrationDto.preOperationDiagnosis,
+        operationName: createRegistrationDto.operationName,
+        postOperationDiagnosis: createRegistrationDto.postOperationDiagnosis,
+      });
+
       await this.registrationsModel.create(createRegistrationDto);
       const countRegistrationDocuments =
         await this.registrationsModel.countDocuments();
@@ -378,7 +403,7 @@ export class RegistrationsService {
       return {
         totalPagesCount: Math.ceil(countRegistrationDocuments / 20),
         totalCount: countRegistrationDocuments,
-      };
+      };    
     } catch (err) {
       console.log(err.message);
       throw new BadRequestException("Error in createRegistration", err.message);
@@ -414,17 +439,23 @@ export class RegistrationsService {
         }
       }
 
-      const countDocuments = await this.registrationsModel.countDocuments();
-      if (updateRegistrationDto.operationParticipants.length) {
+      if (updateRegistrationDto.operationParticipants?.length) {
         const participants = await this.usersService.getUsersByUserIds(updateRegistrationDto.operationParticipants);
         updateRegistrationDto.participants = participants;
       }
+
+      syncRegistrationOptions(this.registrationOptionModel, {
+        preOperationDiagnosis: updateRegistrationDto.preOperationDiagnosis,
+        operationName: updateRegistrationDto.operationName,
+        postOperationDiagnosis: updateRegistrationDto.postOperationDiagnosis,
+      });
 
       const updatedRegistration = await this.registrationsModel.findByIdAndUpdate(
         updateRegistrationDto.id,
         updateRegistrationDto,
         { returnDocument: 'after' },
       );
+      const countDocuments = await this.registrationsModel.countDocuments();
 
       return {
         totalPagesCount: Math.ceil(countDocuments / 20),

@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   UsePipes,
   ValidationPipe,
@@ -15,6 +16,8 @@ import {
   UpdateRegistrationDto,
   ReportDto,
   ContactDto,
+  GetRegistrationOptionsDto,
+  CreateRegistrationOptionDto,
 } from "./dto/registrations.dto";
 import { RegistrationsService } from "./registrations.service";
 import { UserProfile } from "src/type/interfaces/user.interface";
@@ -103,6 +106,16 @@ export class RegistrationsController {
     };
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post("options")
+  async getOptions(@Body() query: GetRegistrationOptionsDto) {
+    const data = await this.registrationsService.getOptionsByType(query.type);
+    return {
+      message: "Options fetched successfully",
+      success: true,
+      data,
+    };
+  }
 
   @Post("create")
   async createRegistration(

@@ -10,6 +10,7 @@ import {
   Length,
 } from "class-validator";
 import { Gender } from "../schemas/registrations.schema";
+import { RegistrationOptionTypeEnum } from "src/type/enums/options.enum";
 
 export class AuthDto {
   @IsString()
@@ -255,4 +256,24 @@ export class DeleteRegistrationDto {
   @IsMongoId()
   @IsString()
   id: string;
+}
+
+
+
+export class GetRegistrationOptionsDto {
+  @IsEnum(RegistrationOptionTypeEnum)
+  type: RegistrationOptionTypeEnum;
+}
+
+export class CreateRegistrationOptionDto {
+  @IsEnum(RegistrationOptionTypeEnum)
+  type: RegistrationOptionTypeEnum;
+
+  @IsString()
+  @IsNotEmpty()
+  label: string;
+
+  @IsNumber()
+  @IsOptional()
+  order?: number;
 }

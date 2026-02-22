@@ -6,16 +6,18 @@ import {
   Registrations,
   RegistrationsSchema,
 } from './schemas/registrations.schema';
+import {
+  RegistrationOption,
+  RegistrationOptionSchema,
+} from './schemas/registration-option.schema';
 import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     UsersModule,
     MongooseModule.forFeature([
-      {
-        name: Registrations.name,
-        schema: RegistrationsSchema,
-      },
+      { name: Registrations.name, schema: RegistrationsSchema },
+      { name: RegistrationOption.name, schema: RegistrationOptionSchema },
     ]),
   ],
   controllers: [RegistrationsController],
