@@ -14,6 +14,7 @@ import databaseConfig from './config/database.config';
 import { RegistrationsModule } from './registrations/registrations.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ParticipantsModule } from './participants/participants.module';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { JwtService } from '@nestjs/jwt';
 
@@ -45,6 +46,7 @@ import { JwtService } from '@nestjs/jwt';
     RegistrationsModule,
     AuthModule,
     UsersModule,
+    ParticipantsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthMiddleware, JwtService],
