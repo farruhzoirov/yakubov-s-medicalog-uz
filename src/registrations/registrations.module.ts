@@ -11,6 +11,8 @@ import {
   RegistrationOptionSchema,
 } from './schemas/registration-option.schema';
 import { UsersModule } from '../users/users.module';
+import { ParticipantsService } from 'src/participants/participants.service';
+import { Participant, ParticipantSchema } from 'src/participants/schemas/participant.schema';
 
 @Module({
   imports: [
@@ -18,9 +20,10 @@ import { UsersModule } from '../users/users.module';
     MongooseModule.forFeature([
       { name: Registrations.name, schema: RegistrationsSchema },
       { name: RegistrationOption.name, schema: RegistrationOptionSchema },
+      { name: Participant.name, schema: ParticipantSchema },
     ]),
   ],
   controllers: [RegistrationsController],
-  providers: [RegistrationsService],
+  providers: [RegistrationsService, ParticipantsService],
 })
-export class RegistrationsModule {}
+export class RegistrationsModule { }

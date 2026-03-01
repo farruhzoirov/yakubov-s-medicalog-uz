@@ -79,7 +79,6 @@ export class RegistrationsController {
       totalPagesCount,
       page,
       limit,
-      pendingReportsCount,
     } = await this.registrationsService.getFilteredRegistrations(
       getFilteredRegistrationsDto,
     );
@@ -91,7 +90,6 @@ export class RegistrationsController {
       totalPagesCount,
       page,
       limit,
-      pendingReportsCount,
     };
   }
 

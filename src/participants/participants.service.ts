@@ -13,7 +13,7 @@ export class ParticipantsService {
   constructor(
     @InjectModel(Participant.name)
     private readonly participantModel: Model<ParticipantDocument>,
-  ) {}
+  ) { }
 
   async upsert(upsertParticipantDto: UpsertParticipantDto) {
     try {
@@ -70,6 +70,22 @@ export class ParticipantsService {
         message: 'Participants fetched successfully',
         data,
       };
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
+  }
+
+  async filterParticipants(participantId?: string[]) {
+    try {
+      if (!participantId?.length) return [];
+      const data = await this.participantModel
+        .find({ _id: { $in: participantId } }).lean().exec()
+
+      return (data || []).map((item) => ({
+        id: item._id,
+        fullname: item.fullName,
+        specialty: item.specialty,
+      })) as any[];
     } catch (err) {
       throw new BadRequestException(err.message);
     }

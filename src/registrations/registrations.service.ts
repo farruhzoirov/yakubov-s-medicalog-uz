@@ -45,6 +45,7 @@ import { REGIONS_LIST } from "./data/regions-list.constant";
 import { DistrictObj, RegionObj } from "src/type/interfaces/places.interface";
 import { DISTRICTS_LIST } from "./data/districts-list.constant";
 import { syncRegistrationOptions } from "./utils/syncRegistrationOptions";
+import { ParticipantsService } from "src/participants/participants.service";
 
 @Injectable()
 export class RegistrationsService {
@@ -55,14 +56,14 @@ export class RegistrationsService {
     private readonly registrationOptionModel: Model<RegistrationOptionDocument>,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly participantsService: ParticipantsService,
     // private readonly backupService: BackupService
-  ) {}
+  ) { }
 
   async contact(contactDto: ContactDto) {
     const { name, tgOrPhone } = contactDto;
-    const messageText = `🔔 Yangi xabar! \n\n👤 Ism: ${name}\n📱 Telegram/Telefon: ${
-      tgOrPhone || "Ko'rsatilmagan"
-    }\n`;
+    const messageText = `🔔 Yangi xabar! \n\n👤 Ism: ${name}\n📱 Telegram/Telefon: ${tgOrPhone || "Ko'rsatilmagan"
+      }\n`;
     await sendMessage(messageText, this.configService.get("BOT").TELEGRAM_BOT_TOKEN, this.configService.get("BOT").ADMIN_1_ID, this.configService.get("BOT").ADMIN_2_ID);
   }
 
@@ -79,22 +80,41 @@ export class RegistrationsService {
       if (createdAtFilter) filters.createdAt = createdAtFilter;
     }
 
-    if (forGenerateWordDto.birthDateFrom || forGenerateWordDto.birthDateTo) {
-      filters.birthDate = {};
-      if (forGenerateWordDto.birthDateFrom)
-        filters.birthDate.$gte = forGenerateWordDto.birthDateFrom;
-      if (forGenerateWordDto.birthDateTo)
-        filters.birthDate.$lte = forGenerateWordDto.birthDateTo;
+    if (forGenerateWordDto.operationStartDateTimeFrom || forGenerateWordDto.operationStartDateTimeTo) {
+      const operationStartFilter = createDateRangeFilter(
+        forGenerateWordDto.operationStartDateTimeFrom,
+        forGenerateWordDto.operationStartDateTimeTo,
+      );
+      if (operationStartFilter) filters.operationStartDateTime = operationStartFilter;
     }
 
-    if (forGenerateWordDto.ageFrom || forGenerateWordDto.ageTo) {
+    if (forGenerateWordDto.operationEndDateTimeFrom || forGenerateWordDto.operationEndDateTimeTo) {
+      const operationEndFilter = createDateRangeFilter(
+        forGenerateWordDto.operationEndDateTimeFrom,
+        forGenerateWordDto.operationEndDateTimeTo,
+      );
+      if (operationEndFilter) filters.operationEndDateTime = operationEndFilter;
+    }
+
+    if (forGenerateWordDto.birthYearFrom || forGenerateWordDto.birthYearTo) {
+      filters.birthYear = {};
+      if (forGenerateWordDto.birthYearFrom)
+        filters.birthYear.$gte = forGenerateWordDto.birthYearFrom;
+      if (forGenerateWordDto.birthYearTo)
+        filters.birthYear.$lte = forGenerateWordDto.birthYearTo;
+    }
+
+    if (forGenerateWordDto.ageFrom !== undefined || forGenerateWordDto.ageTo !== undefined) {
       filters.age = {};
-      if (forGenerateWordDto.ageFrom)
+      if (forGenerateWordDto.ageFrom !== undefined)
         filters.age.$gte = forGenerateWordDto.ageFrom;
-      if (forGenerateWordDto.ageTo) filters.age.$lte = forGenerateWordDto.ageTo;
+      if (forGenerateWordDto.ageTo !== undefined)
+        filters.age.$lte = forGenerateWordDto.ageTo;
     }
 
     if (forGenerateWordDto.gender) filters.gender = forGenerateWordDto.gender;
+    if (forGenerateWordDto.region) filters.region = forGenerateWordDto.region;
+    if (forGenerateWordDto.district) filters.district = forGenerateWordDto.district;
 
     const addRegexFilter = (field: string, value?: string) => {
       if (value?.trim()) {
@@ -103,16 +123,11 @@ export class RegistrationsService {
     };
 
     addRegexFilter("address", forGenerateWordDto.address);
-    addRegexFilter("otherAddress", forGenerateWordDto.otherAddress);
-    addRegexFilter("job", forGenerateWordDto.job);
-    addRegexFilter("otherJob", forGenerateWordDto.otherJob);
-    addRegexFilter("visitReason", forGenerateWordDto.visitReason);
-    addRegexFilter("otherVisitReason", forGenerateWordDto.otherVisitReason);
-    addRegexFilter("radiologyReport", forGenerateWordDto.radiologyReport);
-    addRegexFilter(
-      "otherRadiologyReport",
-      forGenerateWordDto.otherRadiologyReport,
-    );
+    addRegexFilter("medicalHistoryNumber", forGenerateWordDto.medicalHistoryNumber);
+    addRegexFilter("phone", forGenerateWordDto.phone);
+    addRegexFilter("preOperationDiagnosis", forGenerateWordDto.preOperationDiagnosis);
+    addRegexFilter("operationName", forGenerateWordDto.operationName);
+    addRegexFilter("postOperationDiagnosis", forGenerateWordDto.postOperationDiagnosis);
 
     const pipeline: any[] = [{ $match: filters }, { $sort: { createdAt: 1 } }];
 
@@ -199,6 +214,7 @@ export class RegistrationsService {
 
     const filters: Record<string, any> = {};
 
+    // Universal text search across relevant schema fields
     if (dto.search?.trim()) {
       Object.assign(
         filters,
@@ -206,17 +222,15 @@ export class RegistrationsService {
           "fullName",
           "phone",
           "address",
-          "otherAddress",
-          "job",
-          "otherJob",
-          "visitReason",
-          "otherVisitReason",
-          "radiologyReport",
-          "otherRadiologyReport",
+          "medicalHistoryNumber",
+          "preOperationDiagnosis",
+          "operationName",
+          "postOperationDiagnosis",
         ]),
       );
     }
 
+    // Date range: createdAt
     if (dto.createdAtFrom || dto.createdAtTo) {
       const createdAtFilter = createDateRangeFilter(
         dto.createdAtFrom,
@@ -225,20 +239,44 @@ export class RegistrationsService {
       if (createdAtFilter) filters.createdAt = createdAtFilter;
     }
 
-    if (dto.birthDateFrom || dto.birthDateTo) {
-      filters.birthDate = {};
-      if (dto.birthDateFrom) filters.birthDate.$gte = dto.birthDateFrom;
-      if (dto.birthDateTo) filters.birthDate.$lte = dto.birthDateTo;
+    // Date range: operationStartDateTime
+    if (dto.operationStartDateTimeFrom || dto.operationStartDateTimeTo) {
+      const operationStartFilter = createDateRangeFilter(
+        dto.operationStartDateTimeFrom,
+        dto.operationStartDateTimeTo,
+      );
+      if (operationStartFilter) filters.operationStartDateTime = operationStartFilter;
     }
 
-    if (dto.ageFrom || dto.ageTo) {
+    // Date range: operationEndDateTime
+    if (dto.operationEndDateTimeFrom || dto.operationEndDateTimeTo) {
+      const operationEndFilter = createDateRangeFilter(
+        dto.operationEndDateTimeFrom,
+        dto.operationEndDateTimeTo,
+      );
+      if (operationEndFilter) filters.operationEndDateTime = operationEndFilter;
+    }
+
+    // Birth year range (string comparison works for 4-digit years)
+    if (dto.birthYearFrom || dto.birthYearTo) {
+      filters.birthYear = {};
+      if (dto.birthYearFrom) filters.birthYear.$gte = dto.birthYearFrom;
+      if (dto.birthYearTo) filters.birthYear.$lte = dto.birthYearTo;
+    }
+
+    // Age range
+    if (dto.ageFrom !== undefined || dto.ageTo !== undefined) {
       filters.age = {};
-      if (dto.ageFrom) filters.age.$gte = dto.ageFrom;
-      if (dto.ageTo) filters.age.$lte = dto.ageTo;
+      if (dto.ageFrom !== undefined) filters.age.$gte = dto.ageFrom;
+      if (dto.ageTo !== undefined) filters.age.$lte = dto.ageTo;
     }
 
+    // Exact match filters
     if (dto.gender) filters.gender = dto.gender;
+    if (dto.region) filters.region = dto.region;
+    if (dto.district) filters.district = dto.district;
 
+    // Regex (partial match) filters
     const addRegexFilter = (field: string, value?: string) => {
       if (value?.trim()) {
         filters[field] = { $regex: value.trim(), $options: "i" };
@@ -246,13 +284,11 @@ export class RegistrationsService {
     };
 
     addRegexFilter("address", dto.address);
-    addRegexFilter("otherAddress", dto.otherAddress);
-    addRegexFilter("job", dto.job);
-    addRegexFilter("otherJob", dto.otherJob);
-    addRegexFilter("visitReason", dto.visitReason);
-    addRegexFilter("otherVisitReason", dto.otherVisitReason);
-    addRegexFilter("radiologyReport", dto.radiologyReport);
-    addRegexFilter("otherRadiologyReport", dto.otherRadiologyReport);
+    addRegexFilter("medicalHistoryNumber", dto.medicalHistoryNumber);
+    addRegexFilter("phone", dto.phone);
+    addRegexFilter("preOperationDiagnosis", dto.preOperationDiagnosis);
+    addRegexFilter("operationName", dto.operationName);
+    addRegexFilter("postOperationDiagnosis", dto.postOperationDiagnosis);
 
     const pipeline: any[] = [
       { $match: filters },
@@ -261,14 +297,11 @@ export class RegistrationsService {
       { $limit: limit },
     ];
 
-    const [registrations, totalCount, lastRegistration, pendingReportsCount] =
+    const [registrations, totalCount, lastRegistration] =
       await Promise.all([
         this.registrationsModel.aggregate(pipeline).exec(),
         this.registrationsModel.countDocuments(filters),
         this.registrationsModel.findOne().sort({ createdAt: -1 }).lean(),
-        this.registrationsModel
-          .countDocuments({ radiologyReport: "pending" })
-          .lean(),
       ]);
 
     if (lastRegistration) {
@@ -289,7 +322,6 @@ export class RegistrationsService {
       totalCount,
       page,
       limit,
-      pendingReportsCount,
     };
   }
 
@@ -329,7 +361,7 @@ export class RegistrationsService {
   // postOperationDiagnosis: string;
   // operationParticipants: string[];
   // phone: string;
-  
+
 
   async createRegistration(
     createRegistrationDto: CreateRegistrationDto & {
@@ -370,9 +402,13 @@ export class RegistrationsService {
         }
       }
 
-      if (createRegistrationDto.operationParticipants.length) {
-        const participants = await this.usersService.getUsersByUserIds(createRegistrationDto.operationParticipants);
-        createRegistrationDto.participants = participants;
+      if (createRegistrationDto.operationParticipants?.length) {
+        let participants = await this.usersService.getUsersByUserIds(createRegistrationDto.operationParticipants);
+        if (!participants.length) {
+          createRegistrationDto.participants = await this.participantsService.filterParticipants(createRegistrationDto.operationParticipants);
+        } else {
+          createRegistrationDto.participants = participants;
+        }
       }
 
 
@@ -403,7 +439,7 @@ export class RegistrationsService {
       return {
         totalPagesCount: Math.ceil(countRegistrationDocuments / 20),
         totalCount: countRegistrationDocuments,
-      };    
+      };
     } catch (err) {
       console.log(err.message);
       throw new BadRequestException("Error in createRegistration", err.message);
@@ -439,9 +475,14 @@ export class RegistrationsService {
         }
       }
 
+     
       if (updateRegistrationDto.operationParticipants?.length) {
-        const participants = await this.usersService.getUsersByUserIds(updateRegistrationDto.operationParticipants);
-        updateRegistrationDto.participants = participants;
+        let participants = await this.usersService.getUsersByUserIds(updateRegistrationDto.operationParticipants);
+        if (!participants.length) {
+          updateRegistrationDto.participants = await this.participantsService.filterParticipants(updateRegistrationDto.operationParticipants);
+        } else {
+          updateRegistrationDto.participants = participants;
+        }
       }
 
       syncRegistrationOptions(this.registrationOptionModel, {

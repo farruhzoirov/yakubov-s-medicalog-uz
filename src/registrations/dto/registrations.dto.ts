@@ -55,22 +55,7 @@ export class GetFilteredRegistrationsDto {
   @IsString()
   search?: string;
 
-  @IsOptional()
-  @IsString()
-  birthDateFrom?: string;
-
-  @IsOptional()
-  @IsString()
-  birthDateTo?: string;
-
-  @IsOptional()
-  @IsNumber()
-  ageFrom?: string;
-
-  @IsOptional()
-  @IsNumber()
-  ageTo?: string;
-
+  // Date range filters
   @IsOptional()
   @IsDateString()
   createdAtFrom?: string;
@@ -80,40 +65,76 @@ export class GetFilteredRegistrationsDto {
   createdAtTo?: string;
 
   @IsOptional()
+  @IsDateString()
+  operationStartDateTimeFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  operationStartDateTimeTo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  operationEndDateTimeFrom?: string;
+
+  @IsOptional()
+  @IsDateString()
+  operationEndDateTimeTo?: string;
+
+  // Birth year range (e.g. "1980" to "2000")
+  @IsOptional()
   @IsString()
-  address?: string;
+  birthYearFrom?: string;
 
   @IsOptional()
   @IsString()
-  otherAddress?: string;
+  birthYearTo?: string;
+
+  // Age range
+  @IsOptional()
+  @IsNumber()
+  ageFrom?: number;
 
   @IsOptional()
-  @IsString()
-  job?: string;
+  @IsNumber()
+  ageTo?: number;
 
-  @IsOptional()
-  @IsString()
-  otherJob?: string;
-
-  @IsOptional()
-  @IsString()
-  visitReason?: string;
-
-  @IsOptional()
-  @IsString()
-  otherVisitReason?: string;
-
+  // Exact match filters
   @IsOptional()
   @IsEnum(Gender)
   gender?: string;
 
   @IsOptional()
   @IsString()
-  radiologyReport: string;
+  region?: string;
 
   @IsOptional()
   @IsString()
-  otherRadiologyReport: string;
+  district?: string;
+
+  // Regex (partial match) filters
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  medicalHistoryNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  preOperationDiagnosis?: string;
+
+  @IsOptional()
+  @IsString()
+  operationName?: string;
+
+  @IsOptional()
+  @IsString()
+  postOperationDiagnosis?: string;
 }
 
 export class ReportDto {
