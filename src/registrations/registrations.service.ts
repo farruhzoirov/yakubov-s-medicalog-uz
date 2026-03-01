@@ -104,11 +104,11 @@ export class RegistrationsService {
         filters.birthYear.$lte = forGenerateWordDto.birthYearTo;
     }
 
-    if (forGenerateWordDto.ageFrom !== undefined || forGenerateWordDto.ageTo !== undefined) {
+    if (forGenerateWordDto.ageFrom != null || forGenerateWordDto.ageTo != null) {
       filters.age = {};
-      if (forGenerateWordDto.ageFrom !== undefined)
+      if (forGenerateWordDto.ageFrom != null)
         filters.age.$gte = forGenerateWordDto.ageFrom;
-      if (forGenerateWordDto.ageTo !== undefined)
+      if (forGenerateWordDto.ageTo != null)
         filters.age.$lte = forGenerateWordDto.ageTo;
     }
 
@@ -265,10 +265,10 @@ export class RegistrationsService {
     }
 
     // Age range
-    if (dto.ageFrom !== undefined || dto.ageTo !== undefined) {
+    if (dto.ageFrom != null || dto.ageTo != null) {
       filters.age = {};
-      if (dto.ageFrom !== undefined) filters.age.$gte = dto.ageFrom;
-      if (dto.ageTo !== undefined) filters.age.$lte = dto.ageTo;
+      if (dto.ageFrom != null) filters.age.$gte = dto.ageFrom;
+      if (dto.ageTo != null) filters.age.$lte = dto.ageTo;
     }
 
     // Exact match filters
